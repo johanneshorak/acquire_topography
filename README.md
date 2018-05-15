@@ -14,6 +14,7 @@ The output netcdf file will contain longitude and latitude coordinates in the va
 # some examples:
     python act.py --lat1=45 --lat2=48 --lat0=48 --lonc=10 --nx=205 --ny=150 --dx 4000 --dy 4000 --name europe --smooth
 generates a smoothed DEM for the European Alps with a horizontal grid spacing of 4000x4000 m². See ./examples/european_alps.nc for the generated netcdf file.
+
 ![alt text](examples/topo_european_alps.jpg "smoothed and unsmoothed topography")
 
     python act.py --lat1=-42 --lat2=-46 --lat0=-43.6 --lonc=170 --nx=205 --ny=225 --dx 4000 --dy 4000 --name southern_nz
