@@ -337,7 +337,7 @@ if (dmin < 1) or (dmin < 1):
 	source = 'srtm'
 else:
 	source      = 'etopo1'
-print '    minimum spacing is {:2.2f}'.format(dmin)
+print '    minimum spacing is {:2.2f}\''.format(dmin)
 print '     => source dataset is {:s}...'.format(source)
 topo_in     = load_hr_dem(source,script_path)
 topo_in		= topo_in.sel(lon=slice(lon1d,lon2d),lat=slice(lat1d,lat2d))				# select the subset we need so that not the entire dataset is used
@@ -361,8 +361,8 @@ if plots:
 
 print '    upscaling...'
 topo_lr					= grid.lookup_transform(topo_hr, grid=gr_hr, method=np.mean, lut=lut)
-topo_lr[ topo_lr < 0.0]	= 0																		# everything below sea level is set to zero elevation
-
+topo_lr[ topo_lr < 0.0]	= 0					# everything below sea level is set to zero elevation
+											# currently would cause problems for land regions with lower elevations (e.g. Netherlands, Death Valley (US), etc.
 if plots:
 	# output plot of dx.dy topography
 	f,ax = plt.subplots(1,1,dpi=400)
@@ -370,12 +370,11 @@ if plots:
 	sm.visualize(ax=ax);
 	plt.savefig('./{:s}_topography_original.pdf'.format(name))
 
-# convert the data to the xarray format
-topo_data = topo_lr.data
-
-topo_data[np.isnan(topo_data)] = 0              # if this is not done, there are np.nan values in the nc file
-lm_data                        = topo_data*0.0
-lm_data[topo_data>0]           = 1.0            # lowest elevation is the sea level
+# arrange all data in the netcdf format
+salem_ds				= grid.to_dataset()	# from here we get northing and southing information to create a salem compatible netcdf file
+topo_data				= topo_lr.data
+lm_data                 = topo_data*0.0		# prepare landmask data
+lm_data[topo_data>0]    = 1.0				# every elevation above zero is interpreted as land. currently ignores water bodies like lakes and rivers
 
 topo_ds = xa.Dataset(data_vars={ 
             'HGT_M':(('south_north','west_east'),topo_data),
@@ -383,7 +382,9 @@ topo_ds = xa.Dataset(data_vars={
         },
                 coords={
                         'XLONG_M': (('south_north','west_east'), grid.ll_coordinates[0]),
-                        'XLAT_M': (('south_north','west_east'),  grid.ll_coordinates[1])
+                        'XLAT_M' : (('south_north','west_east'),  grid.ll_coordinates[1]),
+                        'y'      : ('y', salem_ds.y),
+                        'x'      : ('x', salem_ds.x)
                        }
                 )
 
@@ -391,6 +392,7 @@ if smooth == True:
 	print '    filtering...'
 	topo_ds=filter_topo(topo_ds)
 print '    saving...'
+topo_ds.attrs['pyproj_srs'] = grid.proj.srs
 topo_ds.to_netcdf('./'+name+'.nc')
 print '  done'
 
