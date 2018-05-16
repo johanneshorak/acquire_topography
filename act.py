@@ -220,14 +220,22 @@ name  	= None
 smooth	= False
 preview = False
 plots	= False
+debug   = False
 
 try:
-	opts, args = getopt.getopt(sys.argv[1:],"",["lonc=","lat0=","lat1=","lat2=","dx=","dy=","lon1=","lon2=","nx=","ny=","name=","smooth","preview","plots"])
+	opts, args = getopt.getopt(sys.argv[1:],"",["lonc=","lat0=","lat1=","lat2=","dx=","dy=","lon1=","lon2=","nx=","ny=","name=","smooth","preview","plots","debug"])
 except getopt.GetoptError, exc:
 	print exc.msg
 	print 'error occured, problem with parameters!'
 	sys.exit(2)
+	
+if '--debug' in sys.argv[1:]:
+	debug = True	
+
 for opt, arg in opts:
+	if debug:
+		print '    {:10s}: {:s}'.format(opt,arg)
+		
 	if opt in ('--lonc'):
 		lonc	= float(arg)
 	elif opt in ('--lon1'):
@@ -292,10 +300,6 @@ if (nx is None) and (ny is None):
 	ny       = 1.7*ny_guess						
 	lonc	 = 0.5*(lon1+lon2)
 	print '    estimated nx and ny as {:n} and {:n}'.format(nx,ny)
-else:
-	print '    set nx and ny to {:n} and {:n}'.format(nx,ny)
-#sys.exit(1)
-
 
 # create the correct projection
 x0      = -4e5
@@ -310,17 +314,20 @@ lon2d	= np.max(grid.ll_coordinates[0])
 lat1d	= np.min(grid.ll_coordinates[1])
 lat2d	= np.max(grid.ll_coordinates[1])
 
-print '  * {:3.1f}N {:3.1f}W to {:3.1f}N {:3.1f}W at {:2.1f}m x {:2.1f}m as {:s}'.format(lon1d,lat1d,lon2d,lat2d,dx,dy,name)
-
 # output an overview of the topography
 sm     = salem.Map(grid)
 if preview:
-	sm.visualize();
-	print '    creating preview file...'
-	plt.savefig('./{:s}_preview.pdf'.format(name))
+	print '  * approximate boundaries (WESN): {:2.0f} {:2.0f} {:2.0f} {:2.0f}'.format(lon1d,lon2d,lat1d,lat2d)
+	if plots:
+		sm.visualize();
+		print '    creating preview file...'
+		plt.savefig('./{:s}_preview.pdf'.format(name))
 	sys.exit(0)
-	
+else:
+	print '  * {:3.1f}N to {:3.1f}N and {:3.1f}W to {:3.1f}W at {:2.1f}m x {:2.1f}m as {:s}'.format(lon1d,lat1d,lon2d,lat2d,dx,dy,name)
+
 script_path = os.path.dirname(os.path.realpath(__file__))
+
 
 
 # calculate an average dlon and dlat to decided which data source to use
