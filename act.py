@@ -317,7 +317,7 @@ lat2d	= np.max(grid.ll_coordinates[1])
 # output an overview of the topography
 sm     = salem.Map(grid)
 if preview:
-	print '  * approximate boundaries (WESN): {:2.0f} {:2.0f} {:2.0f} {:2.0f}'.format(lon1d,lon2d,lat1d,lat2d)
+	print '  * approximate boundaries (WESN):{:3.0f},{:3.0f},{:3.0f},{:3.0f}'.format(lon1d,lon2d,lat1d,lat2d)
 	if plots:
 		sm.visualize();
 		print '    creating preview file...'
